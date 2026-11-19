@@ -27,8 +27,8 @@ Model (per case, deterministic, stdlib only, no network):
      per-kind ceiling (platinum ~0.3%, 100% completion ~0.5%, grinds ~8%,
      story chapters ~65-80%).
 
-  3. Spread: logit-normal, sigma = sqrt((0.5*sqrt(d))^2 + (0.45 + 0.10*d)^2
-     (+ 0.25^2 when the history is flat)), d = horizon in days, plus a
+  3. Spread: logit-normal, sigma = sqrt((0.5*sqrt(d))^2 + (0.30 + 0.10*d)^2
+     (+ 0.20^2 when the history is flat)), d = horizon in days, plus a
      little extra for the platinum / 100%-completion trophies.  A 4.5-day
      horizon is far more uncertain than a 90-minute one, so the band is
      much wider there.  A trophy sitting at 100% in the last read keeps a
@@ -270,9 +270,17 @@ def forecast_case(case, name):
     n_target = max(n_target, 1.0)
 
     # --- spread ----------------------------------------------------------
+    # Revision: the 90-minute practice band covered 98% of trophies under
+    # every reconstruction of the refreshed answers (an honest 90% band
+    # covers ~90%), so the base model term was too wide at short horizons.
+    # The base is cut 0.45 -> 0.30 and the flat-history term 0.25 -> 0.20:
+    # sigma falls 0.54 -> 0.38 at 90 min, but barely moves at the 4.5-day
+    # final horizon (1.39 -> ~1.31), where the random-walk term dominates
+    # and the uncertainty is genuinely large.  Practice loss 0.125-0.141
+    # -> 0.097-0.113 across the three answer reconstructions.
     sigma_rw = 0.5 * math.sqrt(horizon_days)
-    sigma_model = 0.45 + 0.10 * horizon_days
-    sigma_flat = 0.25 if flat else 0.0
+    sigma_model = 0.30 + 0.10 * horizon_days
+    sigma_flat = 0.20 if flat else 0.0
 
     # --- per-trophy forecast ---------------------------------------------
     rows = []
